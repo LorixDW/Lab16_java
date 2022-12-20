@@ -1,8 +1,17 @@
 package com.vyatsu.task14.entities;
 
+import javax.persistence.*;
+
+
+@Entity
+@Table(name = "products")
 public class Product {
+    @Id
+    @Column( nullable = false)
     private Long id;
+    @Column(nullable = false)
     private String title;
+    @Column(nullable = false)
     private int price;
 
     public Long getId() {

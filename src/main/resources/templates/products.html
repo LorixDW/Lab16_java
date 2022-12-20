@@ -76,6 +76,9 @@
         </tr>
         </tbody>
     </table>
+    <div th:each="p : ${pages}">
+        <a th:text="${p + 1}" th:href="@{'/products/page/' + ${p}}"/>
+    </div>
     <h1 >Добавить строку</h1>
     <span th:text="${'Всего товаров ' + products.size()}"/>
     <br>

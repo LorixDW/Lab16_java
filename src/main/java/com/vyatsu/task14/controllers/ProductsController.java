@@ -25,7 +25,8 @@ public class ProductsController {
     private Pattern pattern = Pattern.compile("");
     private final ArrayList<Long> Isredact = new ArrayList<>();
     private boolean showFilter = false;
-
+    private int curent_page = 0;
+    private int page_rows = 5;
     @Autowired
     public void setProductsService(ProductsService productsService) {
         this.productsService = productsService;
@@ -36,27 +37,38 @@ public class ProductsController {
         Product product = new Product();
         Product product1 = new Product();
         StrParam str = new StrParam();
-        List<Product> pl = new ArrayList<>();
-        for (Product p: productsService.getAllProducts()) {
-            if(pattern.matcher(p.getTitle()).find()){
-                pl.add(p);
+        List<Product> pl = productsService.getFilterProduct(filter);
+        List<Integer> pages = new ArrayList<>();
+        List<List<Product>> ppl = new ArrayList<>();
+        for (int i = 0; i <= pl.size() / page_rows; i++){
+            ppl.add(new ArrayList<>());
+            pages.add(i);
+            if(i == pl.size() / page_rows){
+                for(int j = 0; j < pl.size() - i * page_rows; j++){
+                    ppl.get(i)
+                            .add(pl.get(i * page_rows + j));
+                }
+                break;
+            }
+            for (int j = 0; j < page_rows; j++){
+                ppl.get(i)
+                        .add(pl.get(i * page_rows + j));
             }
         }
-        pl = pl.stream().filter(p -> p.getPrice() > filter.getMin() && p.getPrice() < filter.getMax()).collect(Collectors.toList());
-        if(filter.getPriceF().equals("max")){
-            pl = pl.stream().sorted((p1, p2) -> p1.getPrice() - p2.getPrice()).collect(Collectors.toList());
-        }
-        if(filter.getPriceF().equals("min")){
-            pl = pl.stream().sorted((p1, p2) -> p2.getPrice() - p1.getPrice()).collect(Collectors.toList());
+        if(ppl.get(ppl.size() - 1).size() == 0)
+        {
+            pages.remove(ppl.size() - 1);
         }
         model.addAttribute("isRedact", Isredact);
         model.addAttribute("filter", filter);
         model.addAttribute("addMess", AddMessage);
         model.addAttribute("val", str);
-        model.addAttribute("products", pl);
+        model.addAttribute("products", ppl.get(curent_page));
         model.addAttribute("product", product);
         model.addAttribute("product1", product1);
         model.addAttribute("showFilter", showFilter);
+        model.addAttribute("current_page", curent_page);
+        model.addAttribute("pages", pages);
         return "products";
     }
 
@@ -95,6 +107,7 @@ public class ProductsController {
         filter.setPriceF(f.getPriceF());
         filter.setMax(f.getMax());
         filter.setMin(f.getMin());
+        curent_page = 0;
         return "redirect:/products";
     }
     @GetMapping("/edit/{id}")
@@ -104,15 +117,18 @@ public class ProductsController {
     }
     @PostMapping("/edit")
     public  String editProduct(@ModelAttribute(value = "product1") Product product){
-        Product edited = productsService.getAllProducts().stream().filter(p -> p.getId() == product.getId()).findFirst().orElse(null);
-        edited.setTitle(product.getTitle());
-        edited.setPrice(product.getPrice());
+        productsService.update(product);
         Isredact.remove(product.getId());
         return "redirect:/products";
     }
     @GetMapping("/filter")
     public  String showFilter(Model model){
         showFilter = !showFilter;
+        return "redirect:/products";
+    }
+    @GetMapping("/page/{id}")
+    public  String viewPage(Model model, @PathVariable(value = "id") int id){
+        curent_page = id;
         return "redirect:/products";
     }
 }
