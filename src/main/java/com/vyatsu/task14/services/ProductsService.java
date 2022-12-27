@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductsService {
@@ -43,5 +44,20 @@ public class ProductsService {
     }
     public void update(Product product){
         repository.updateTitleAndPriceById(product.getTitle(), product.getPrice(), product.getId());
+    }
+    public void ViewIncrement(Long id){
+        repository.AddView(id);
+    }
+    public List<Product> GetThreeMostSeen(){
+        return getAllProducts().stream().sorted((p1, p2) -> p2.getView() - p1.getView()).limit(3).collect(Collectors.toList());
+    }
+    public long GetNextId(){
+        Product product = getAllProducts().stream().sorted((p1, p2) -> (int) (p2.getId() - p1.getId())).findFirst().orElse(null);
+        if(product != null){
+            return (int) (product.getId() + 1);
+        }
+        else {
+            return 1;
+        }
     }
 }

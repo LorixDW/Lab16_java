@@ -7,12 +7,24 @@ import javax.persistence.*;
 @Table(name = "products")
 public class Product {
     @Id
-    @Column( nullable = false)
+    @Column(nullable = false)
     private Long id;
     @Column(nullable = false)
     private String title;
     @Column(nullable = false)
     private int price;
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int view;
+    public void IncView(){
+        view++;
+    }
+    public int getView() {
+        return view;
+    }
+
+    public void setView(int view) {
+        this.view = view;
+    }
 
     public Long getId() {
         return id;

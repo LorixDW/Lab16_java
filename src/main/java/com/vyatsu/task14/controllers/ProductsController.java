@@ -26,12 +26,11 @@ public class ProductsController {
     private final ArrayList<Long> Isredact = new ArrayList<>();
     private boolean showFilter = false;
     private int curent_page = 0;
-    private int page_rows = 5;
+    private final int page_rows = 5;
     @Autowired
     public void setProductsService(ProductsService productsService) {
         this.productsService = productsService;
     }
-
     @GetMapping
     public String showProductsList(Model model) {
         Product product = new Product();
@@ -40,6 +39,13 @@ public class ProductsController {
         List<Product> pl = productsService.getFilterProduct(filter);
         List<Integer> pages = new ArrayList<>();
         List<List<Product>> ppl = new ArrayList<>();
+        pl = pl.stream().sorted((p1, p2) -> (int) (p1.getId() - p2.getId())).collect(Collectors.toList());
+        if(filter.getPriceF().equals("max")){
+            pl = pl.stream().sorted((p1, p2) -> p1.getPrice() - p2.getPrice()).collect(Collectors.toList());
+        }
+        if(filter.getPriceF().equals("min")){
+            pl = pl.stream().sorted((p1, p2) -> p2.getPrice() - p1.getPrice()).collect(Collectors.toList());
+        }
         for (int i = 0; i <= pl.size() / page_rows; i++){
             ppl.add(new ArrayList<>());
             pages.add(i);
@@ -72,21 +78,32 @@ public class ProductsController {
         return "products";
     }
 
-    @PostMapping("/add")
-    public String addProduct(@ModelAttribute(value = "product")Product product) {
-        if(productsService.getAllProducts().stream().filter(p -> p.getId() == product.getId()).collect(Collectors.toList()).size() == 0){
-            productsService.add(product);
-            AddMessage.setValue("");
-        }
-        else{
-            AddMessage.setValue("Указанный id уже занят!!!");
-        }
+//    @PostMapping("/add")
+//    public String addProduct(@ModelAttribute(value = "product")Product product) {
+//        if(productsService.getAllProducts().stream().filter(p -> p.getId() == product.getId()).collect(Collectors.toList()).size() == 0){
+//            productsService.add(product);
+//            AddMessage.setValue("");
+//        }
+//        else{
+//            AddMessage.setValue("Указанный id уже занят!!!");
+//        }
+//        return "redirect:/products";
+//    }
+    @GetMapping("/add")
+    public String addProduct(Model model){
+        Product product = new Product();
+        Long id = productsService.GetNextId();
+        product.setId(id);
+        product.setPrice(0);
+        product.setTitle("");
+        productsService.add(product);
+        Isredact.add(id);
         return "redirect:/products";
     }
-
     @GetMapping("/show/{id}")
     public String showOneProduct(Model model, @PathVariable(value = "id") Long id) {
         Product product = productsService.getById(id);
+        productsService.ViewIncrement(id);
         model.addAttribute("product", product);
         return "product-page";
     }

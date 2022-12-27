@@ -15,4 +15,8 @@ public interface IProductRepository extends PagingAndSortingRepository<Product,L
     @Modifying
     @Query("update Product p set p.title = ?1, p.price = ?2 where p.id = ?3")
     void updateTitleAndPriceById(String title, int price, @NonNull Long id);
+    @Transactional
+    @Modifying
+    @Query("update Product p set p.view = p.view + 1 where p.id = ?1")
+    void AddView(@NonNull Long id);
 }
